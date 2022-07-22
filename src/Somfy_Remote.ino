@@ -190,15 +190,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println(blind_number);
         
     // u = up, d = down, s = stop, p = program, w = wait
-    if (strcmp(demand_str,"u") == 0) {
+    if (strcmp(demand_str,"u") == 0 || strcmp(demand_str,"100") == 0) {
       demand[blind_number] = 'u';
-    } else if (strcmp(demand_str,"d") == 0) {
+    } else if (strcmp(demand_str,"d") == 0 || strcmp(demand_str,"0") == 0) {
       demand[blind_number] = 'd';
     } else if (strcmp(demand_str,"s") == 0) {
       demand[blind_number] = 's';
     } else if (strcmp(demand_str,"p") == 0) {
       demand[blind_number] = 'p';
     } else {
+      Serial.print("ERROR: unknown demand: \"");
+      Serial.print(demand);
+      Serial.println("\", ignoring...");
       demand[blind_number] = 'w';  
     }
     
