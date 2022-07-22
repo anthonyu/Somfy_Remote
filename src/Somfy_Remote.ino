@@ -36,17 +36,14 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
+#include <credentials.h>
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 String header;
-const char* ssid = "";   // <-- Enter your Wifi-SSID
-const char* password = "";  // <-- Enter your Wifi-Password
-
-const char* mqtt_server = "192.168.68.126";  // <-- Enter the IP of your MQTT-Server
 const unsigned int mqtt_port = 1883; 
-const char* mqtt_user =   ""; 
-const char* mqtt_pass =   ""; // <-- Enter the Password of your MQTT-Server
+
 String clientId = "Somfy";
 
 #define SYMBOL 640
