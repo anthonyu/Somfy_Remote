@@ -57,6 +57,8 @@ String mqtt_channel = "Somfy-";
 #define DOWN 0x4
 #define PROG 0x8
 #define EEPROM_ADDRESS 0
+#define DUPES 2
+
 int remote[20] = {0x121313,0x121314,0x121315,0x121316,0x121317,
                   0x121318,0x121319,0x121320,0x121321,0x121322,
                   0x121323,0x121324,0x121325,0x121326,0x121327,
@@ -267,6 +269,30 @@ void setup() {
   }
 }
 
+void BuildAndSendFrames(byte *frame, String english, String position, byte button, int blind_number, int dupes) {
+  Serial.print("doing ");
+  Serial.println(english);
+
+  for (int i = 0; i < dupes; i++) {
+    BuildFrame(frame, button, blind_number);
+    Serial.println("");
+    SendCommand(frame, 2);
+    for(int j = 0; j<2; j++) {
+      SendCommand(frame, 7);
+    }
+  }
+  demand[blind_number] = 'w';
+
+  char* feedback_channel = &("Somfy-" + String(i) + "/Feedback")[0];
+
+  client.publish(feedback_channel, english);
+  delay(50);
+  client.subscribe(feedback_channel);
+
+  Serial.print("done ");
+  Serial.println(english);
+}
+
 void loop() {
 
   if (!client.connected()) {
@@ -279,49 +305,18 @@ void loop() {
   
       char serie = (char)demand[i];
 
-      char* feedback_channel = &("Somfy-" + String(i) + "/Feedback")[0];
-      
       if(serie == 'u') {
-        demand[i] = 'w';
-        Serial.println("up");
-        BuildFrame(frame, UP, i);
-  
-        client.publish(feedback_channel, "up");
-        delay(50);
-        client.subscribe(feedback_channel);
-        Serial.println("moving up");
+        BuildAndSendFrames(frame, "up", "100", UP, i, DUPES);
       } else if (serie == 'd') {
-        demand[i] = 'w';
-        Serial.println("down");
-        BuildFrame(frame, DOWN, i);
-        client.publish(feedback_channel, "down");
-        delay(50);
-        client.subscribe(feedback_channel);
-        Serial.println("moving down");
+        BuildAndSendFrames(frame, "down", "0", DOWN, i, DUPES);
       } else if(serie == 'p') {
-        demand[i] = 'w';
-        Serial.println("prog");
-        BuildFrame(frame, PROG, i);
-        client.publish(feedback_channel, "prog");
-        delay(50);
-        client.subscribe(feedback_channel);
-        Serial.println("prog mode");
+        BuildAndSendFrames(frame, "prog", "50", PROG, i, 1);
       } else if(serie == 's') {
+        BuildAndSendFrames(frame, "stop", "50", STOP, i, DUPES);
+      } else {
         demand[i] = 'w';
-        Serial.println("stop");
-        BuildFrame(frame, STOP, i);
-        client.publish(feedback_channel, "stop");
-        delay(50);
-        client.subscribe(feedback_channel);
-        Serial.println("stop");
-      }
-      Serial.println(i);
-      demand[i] = 'w';
-  
-      Serial.println("");
-      SendCommand(frame, 2);
-      for(int j = 0; j<2; j++) {
-        SendCommand(frame, 7);
+        Serial.print("wtf???: ");
+        Serial.print(serie);
       }
     }
   }
