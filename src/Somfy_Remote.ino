@@ -49,8 +49,6 @@ const char* mqtt_user =   "";
 const char* mqtt_pass =   ""; // <-- Enter the Password of your MQTT-Server
 String clientId = "Somfy";
 
-String mqtt_channel = "Somfy-";
- 
 #define SYMBOL 640
 #define UP 0x2
 #define STOP 0x1
@@ -221,7 +219,6 @@ void reconnect() {
       Serial.println("connected. ");
       for (int i=0; i<20; i++) {
         client.subscribe(&("Somfy-" + String(i))[0]);
-        client.subscribe(&("Somfy-" + String(i) + "/Feedback")[0]);
       }
     } else {
       Serial.print("failed, rc=");
@@ -282,12 +279,9 @@ void BuildAndSendFrames(byte *frame, String english, String position, byte butto
     }
   }
   demand[blind_number] = 'w';
-
-  char* feedback_channel = &("Somfy-" + String(i) + "/Feedback")[0];
-
-  client.publish(feedback_channel, english);
-  delay(50);
-  client.subscribe(feedback_channel);
+  
+  client.publish(&("Somfy/" + String(blind_number) + "/CurrentPosition")[0], &(position)[0]);
+  client.publish(&("Somfy/" + String(blind_number) + "/TargetPosition")[0], &(position)[0]);
 
   Serial.print("done ");
   Serial.println(english);
